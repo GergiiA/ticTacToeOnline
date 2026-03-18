@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Play</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <div class="App">
+        <div class="Content">
+             <div id="infoBar">
+                 <h1 class="Title" id="turn"></h1>
+            </div>
+            <div class="Board" id="Board">
+            </div>
+        </div>
+    </div>
+    <div id="overlay" onclick="console.log('overlay')">
+        <div class="Content" id="gameOver">
+            <h1 class="Title" id="resultText"></h1>
+            <button class="Button" onclick="document.location.href='/'">Click to go to home page</button>
+        </div>
+        <div class="Content" id="preStart">
+            <h1 class="Title" id="prestartText">Other player has not joined yet! Please wait!</h1>
+            <h1 class="Title" id="roomId" ></h1>
+        </div>
+    </div>
+
+    <script src="/static/js/play.js"></script>
+</body>
+</html>

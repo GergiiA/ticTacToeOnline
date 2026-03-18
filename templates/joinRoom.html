@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enter Code</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <div class="App">
+        <div class="Content">
+            <h1 class="Title">Enter room join code</h1>
+            <input type="number" name="roomCode" id="roomCode" placeholder="Enter room code" class="Entry" oninput="this.value = this.value.replace(' ', '').toUpperCase()">
+            <input type="text" name="roomPass" id="roomPass" placeholder="Enter room password" class="Entry" oninput="this.value = this.value.replace(' ', '').toUpperCase()">
+            <div id="infoBar">
+                <button type="button" class="Button" onclick="document.location.href='/'"><b>back</b></button>
+                <button class="Button" onclick="submitCode()"><b>Join!</b></button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/enterCode.js"></script>
+</body>
+</html>

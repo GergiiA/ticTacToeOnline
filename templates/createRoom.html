@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create a room</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <div class="App">
+        <div class="Content">
+            <h1 class="Title">Create a room</h1>
+            <input type="text" id="password" placeholder="Enter a password" class="Entry">
+            <div id="infoBar">
+                <button type="button" class="Button" onclick="document.location.href='/'"><b>back</b></button>
+                <button type="button" onclick="createRoom()" class="Button"><b>Create a room</b></button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/createRoom.js"></script>
+</body>
+</html>
