@@ -3,3 +3,4 @@ typing
 fastapi_utils
 starlette
 uvicorn
+typing_inspect
