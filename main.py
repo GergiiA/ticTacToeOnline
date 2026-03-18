@@ -1,13 +1,14 @@
 import os
 from fastapi import FastAPI
 from starlette.responses import HTMLResponse
-from starlette.staticfiles import StaticFiles
+from starlette.staticfiles import StaticFiles, FileResponse
 
 from api import api
 
 app = FastAPI()
 app.mount('/api', api)
 app.mount('/static', StaticFiles(directory='static'))
+app.mount('/ads.txt', FileResponse('ads.txt'))
 
 templates = {}
 for filename in os.listdir('templates'):

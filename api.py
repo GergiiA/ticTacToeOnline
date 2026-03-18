@@ -184,4 +184,3 @@ async def join_room(roomId: int, password: str, playerOid: str,):
     room.ready = True
 
     return {}
-
