@@ -24,6 +24,17 @@ async function sha256(message) {
     return hashHex;
 }
 
+function setTimer(){
+    var lastMoveTS = Number(getCookie("lastMoveTS"));
+    var now = Date.now()/1000;
+    var diff = Math.round(lastMoveTS +30 - now);
+    document.getElementById("timer").innerHTML = diff;
+    //console.log(diff, now, lastMoveTS);
+
+    setTimeout(setTimer, 1000);
+
+}
+
 function drawBoard(boardState){
     var board = document.getElementById("Board");
     board.innerHTML = '';
@@ -41,26 +52,15 @@ function createSquare(value, number){
     return  `<div class="Square" id="${number}" onclick="handleSquareClick(${number})"><h1>${value}</h1></div>`
 
 }
-async function handleSquareClick(number){
-    //console.log(number);
-    if(!gameReady){
-        console.log("Game not Ready!");
-        return}
-
-    if(playingX === xToMove){
-        var params = new URLSearchParams({"roomId": roomId, "confirmation" : key, "move" : number});
-
-        var r = await fetch("/api/playMove?"+params.toString(), {method:"POST"});
-        console.log('text:', await r.text());
-        if(r.ok){
-            console.log('played');
-            updateState()
-        }
-    }
-    else{
-        console.log(playingX, xToMove);
-    }
-
+function handleSquareClick(number) {
+    sendSquare(number, webSocket);
+}
+function sendSquare(number, webSocket) {
+    webSocket.send(JSON.stringify({
+        "type": "move",
+        "key": key,
+        "move": number
+    }))
 }
 function setTurnTitle(xToPlay){
     var title = document.getElementById("turn");
@@ -69,25 +69,6 @@ function setTurnTitle(xToPlay){
     }
     else{
         title.innerHTML = 'O to play';
-    }
-}
-async function getBoardState(roomId){
-    var r = await fetch('/api/getBoardState?roomId=' + roomId);
-    if(r.ok){
-        return await r.json();
-    }
-}
-async function updateState(){
-    var state = await getBoardState(roomId);
-    boardState = state['board'];
-    xToMove = state['xToMove'];
-    winner = state['winner'];
-    gameOver = state['gameDone'];
-    ready = state['ready'];
-    await drawBoard(boardState);
-    await setTurnTitle(xToMove);
-    if(ready){
-        hidePreStartScreen()
     }
 }
 function showOverScreen(winner){
@@ -114,35 +95,62 @@ function hidePreStartScreen(){
     document.getElementById('preStart').style.display = 'none';
     gameReady = true;
 }
+function updateGame(data){
+    var board = data["board"];
+    var xToMove = data["xToMove"];
+    var winner = data["winner"];
+    var gameOver = data["gameDone"];
+    var roomReady = data["ready"];
+    var lastMoveTS = data["lastMoveTimeStamp"];
 
-var roomId = getCookie("roomId");
-var selfId = getCookie("id");
-var playingX;
-var key;
-if (getCookie('start') === 'true'){
-    playingX = true;
-    key = getCookie('xSecret');
-}
-else{
-    playingX = false;
-    key = getCookie('oSecret');
-}
-var xToMove=true
-var boardState = ['', '', '', '', '', '', '', '', '', ]
-var winner = false
-var gameOver = false;
-var gameReady = false;
-document.getElementById('roomId').innerHTML = "room id: "+roomId;
-showPreStartScreen();
+    setCookie("lastMoveTS", lastMoveTS);
 
-async function gameLoop(){
-    await updateState()
-    console.log('ff')
-    if(!gameOver){
-        await setTimeout(gameLoop, 1000)
+    drawBoard(board);
+    setTurnTitle(xToMove);
+
+    if(roomReady){
+        hidePreStartScreen()
+        timerInterval  = setInterval(setTimer, 1000);
     }
     else{
-        await showOverScreen(winner);
+        showPreStartScreen();
+    }
+    if(gameOver){
+        showOverScreen(winner);
+        clearInterval(timerInterval);
     }
 }
-gameLoop();
+
+
+var roomId = Number(getCookie("roomId"));
+var key = getCookie("key");
+var id = getCookie("id");
+var playingX = getCookie("start");
+
+var webSocket = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + '/api/roomWS');
+webSocket.onopen = function(){
+    initialData = {
+        "roomId": roomId,
+        "key": key,
+        "playerId": id,
+        "playingX": playingX,
+    }
+    console.log(initialData);
+    webSocket.send(JSON.stringify(initialData))
+}
+webSocket.onmessage = function(e){
+    var data = JSON.parse(e.data);
+    console.log(data, data["type"]);
+
+    if (data["type"]==="error"){
+        console.log(data["msg"])
+    }
+    else if (data["type"]==="update"){
+        var gameData = data["data"];
+        //console.log(gameData);
+        updateGame(gameData);
+    }
+}
+var timerInterval;
+document.getElementById("roomId").innerHTML = roomId;
+setCookie("lastMoveTS", Date.now());

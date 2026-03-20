@@ -16,16 +16,16 @@ for filename in os.listdir('templates'):
 
 @app.get('/', response_class=HTMLResponse)
 async def root():
-    return open('templates/main.html').read()#templates['main.html']
+    return templates['main.html']
 
 @app.get('/play', response_class=HTMLResponse)
 async def play():
-    return open('templates/play.html').read()#templates['play.html']
+    return templates['play.html']
 
 @app.get('/roomCode', response_class=HTMLResponse)
 async def joinRoom():
-    return open('templates/joinRoom.html').read()#templates['joinRoom.html']
+    return templates['joinRoom.html']
 
 @app.get('/createRoom', response_class=HTMLResponse)
 async def createRoom():
-    return open('templates/createRoom.html').read()
+    return templates['createRoom.html']#open('templates/createRoom.html').read()

@@ -37,16 +37,22 @@ async function submitCode(){
     if(roomPassword===''){
         return;
     }
-    console.log(roomPassword);
+    //console.log(roomPassword);
 
-    var params = new URLSearchParams({roomId: roomCode, password: roomPassword, playerOid: getCookie('id')});
+    /*var params = new URLSearchParams({roomId: roomCode, password: roomPassword, playerOid: getCookie('id')});
     var r = await fetch('api/joinRoom?'+params.toString())
 
     if(r.ok){
         setCookie('roomId', roomCode)
         var myKey = await sha256(roomCode.toString()+roomPassword+getCookie('id'));
-        setCookie('oSecret', myKey);
+        setCookie('key', myKey);
         setCookie('start', 'false');
         document.location.href = '/play';
-    }
+    }*/
+    setCookie('roomId', roomCode)
+    var myKey = await sha256(roomCode.toString()+roomPassword+getCookie('id'));
+    setCookie('key', myKey);
+    setCookie('start', 'false');
+    document.location.href = '/play';
+
 }

@@ -26,7 +26,7 @@ async function sha256(message) {
 
 async function createRoom(){
     if(getCookie("id")==null){
-        getId();
+       await getId();
     }
     var roomPassword = document.getElementById("password").value;
 
@@ -34,13 +34,13 @@ async function createRoom(){
 
     var r = await fetch("/api/create_room?"+params.toString());
 
-    if(r.ok){
+    if(await r.ok){
         var j = await r.json()
         var roomId = j['roomId'];
         setCookie('roomId', roomId);
 
         var xSecret = await sha256(roomId.toString()+roomPassword+getCookie('id'));
-        setCookie('xSecret', xSecret);
+        setCookie('key', xSecret);
         setCookie('start', 'true');
 
 
