@@ -121,7 +121,6 @@ function updateGame(data){
     }
 }
 
-
 var roomId = Number(getCookie("roomId"));
 var key = getCookie("key");
 var id = getCookie("id");

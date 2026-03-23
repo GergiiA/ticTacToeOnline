@@ -13,8 +13,10 @@ function getCookie(name){
 }
 async function getId(){
     var r = await fetch("/api/getId")
-        .then(res => res.json())
-    setCookie("id", r['personalId']);
+    //console.log(r.status, r.statusText);
+    var data = await r.json()
+    setCookie("id", data['personalId']);
+    return data['personalId'];
 }
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
@@ -26,7 +28,7 @@ async function sha256(message) {
 
 async function submitCode(){
     if(getCookie("id")==null){
-        getId();
+        await getId();
     }
     var roomCode = Number(document.getElementById("roomCode").value);
     var roomPassword = document.getElementById("roomPass").value;
@@ -37,20 +39,10 @@ async function submitCode(){
     if(roomPassword===''){
         return;
     }
-    //console.log(roomPassword);
 
-    /*var params = new URLSearchParams({roomId: roomCode, password: roomPassword, playerOid: getCookie('id')});
-    var r = await fetch('api/joinRoom?'+params.toString())
-
-    if(r.ok){
-        setCookie('roomId', roomCode)
-        var myKey = await sha256(roomCode.toString()+roomPassword+getCookie('id'));
-        setCookie('key', myKey);
-        setCookie('start', 'false');
-        document.location.href = '/play';
-    }*/
     setCookie('roomId', roomCode)
-    var myKey = await sha256(roomCode.toString()+roomPassword+getCookie('id'));
+    var myKey = await sha256(roomCode.toString()+roomPassword.toString()+getCookie('id'));
+    console.log(roomCode, roomPassword, getCookie('id'), myKey);
     setCookie('key', myKey);
     setCookie('start', 'false');
     document.location.href = '/play';

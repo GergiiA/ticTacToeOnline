@@ -39,6 +39,7 @@ class Room:
         self.lastMoveTimeStamp = datetime.datetime.now().timestamp()
 
     def makePlayerKey(self, playerId):
+        print(''.join([str(self.id), self.roomPassword, playerId]))
         return hashlib.sha256(''.join([str(self.id), self.roomPassword, playerId]).encode('utf-8')).hexdigest()
     def canPlayMove(self, sqNum):
         if not (0 <= sqNum <=8):
@@ -132,6 +133,23 @@ class Room:
             self.gameDone = True
             self.winner = "O" if self.xToMove else "X"
             await self.updateForBoth()
+    def checkJoin(self, key: str, playerId: str, playingX: bool, con):
+        if playingX:
+            if playerId==self.playerXid and key==self.playerXKey and self.XCon is None:
+                self.XCon = con
+                return True
+        else:
+            if self.playerOid == None:
+                predictedKey = self.makePlayerKey(playerId)
+                if predictedKey==key:
+                    self.playerOid = playerId
+                    self.playerOKey = predictedKey
+                    self.OCon = con
+                    return True
+        return False
+
+
+
 rooms = []
 
 @api.on_event("startup")
@@ -235,53 +253,48 @@ async def ws_room(websocket: WebSocket):
 
     roomId, key, playerId, playingX = data['roomId'], data['key'], data['playerId'], data['playingX']
     playingX = True if data['playingX']=="true" else False
-
     if roomId > len(rooms)-1:
         await websocket.close(1002, "Room ID out of range")
         return
 
     room = rooms[roomId]
 
-    if playingX and (playerId != room.playerXid):
-        await websocket.close(1000, "Invalid id")
+
+    print('1', key, playerId, playingX)
+    join = room.checkJoin(key, playerId, playingX, websocket)
+    print('2', join, playingX, room.makePlayerKey(playerId), room.id, room.roomPassword, playerId)
+
+    if not join:
+        await websocket.close(1002, "Invalid key")
         return
 
-    if not playingX and room.playerOid != None:
-        await websocket.close(1000, "Already taken")
-        return
-
-    if not playingX:
-        room.playerOid = playerId
-        room.playerOKey = room.makePlayerKey(playerId)
-
-    if playingX and key == room.playerXKey and room.XCon==None:
-        room.XCon = websocket
-
-    if not playingX and key == room.playerOKey and room.OCon==None:
-        room.OCon = websocket
-
-    if room.playerXid != None and room.playerOid != None:
+    if room.XCon and room.OCon:
         room.ready = True
 
     await room.updateForBoth()
     while not room.ready:
         await asyncio.sleep(1)
-    print('dfs')
+    print('init done')
+
+
+
+    if playingX:
+        c=room.XCon
+    else:
+        c=room.OCon
+    await c.send_json({'type': 'error', 'message': 'init'})
+    #await c.send_json({'type': 'error', 'msg': 'init'})
+
     await room.updateForBoth()
 
     asyncio.create_task(room.setTimer())
     room.lastMoveTimeStamp = datetime.datetime.now().timestamp()
 
+    await room.updateForBoth()
+
     try:
         while True:
-            try:
-                data = await websocket.receive_json()
-            except:
-                print('must send json')
-                await websocket.close(code=1002, reason="Must send JSON")
-                return
-
-
+            data = await websocket.receive_json()
             if data["type"]=="move" and room.ready and playingX==room.xToMove:
                 key = data['key']
                 if playingX:
